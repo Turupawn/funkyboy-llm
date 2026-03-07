@@ -1,0 +1,45 @@
+services:
+  ollama:
+    image: ollama/ollama
+    restart: "no"
+    volumes:
+      - ollama-data:/root/.ollama
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+
+  ollama-init:
+    image: ollama/ollama
+    depends_on:
+      - ollama
+    volumes:
+      - ./Modelfile:/Modelfile
+      - ./init.sh:/init.sh
+    entrypoint: ["/bin/sh", "/init.sh"]
+    environment:
+      - OLLAMA_HOST=http://ollama:11434
+
+  llm:
+    build: .
+    container_name: funkyboy-llm
+    restart: "no"
+    depends_on:
+      ollama-init:
+        condition: service_completed_successfully
+    env_file:
+      - .env
+    ports:
+      - "8090:8090"
+    environment:
+      - XS_OLLAMA_URL=http://ollama:11434
+
+volumes:
+  ollama-data:
+
+networks:
+  default:
+    name: funkyboy-llm-net
