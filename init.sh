@@ -1,8 +1,8 @@
-#!/bin/sh
+#!/bin/bash
 set -e
 
 echo "Waiting for Ollama..."
-until curl -sf http://ollama:11434/api/tags > /dev/null 2>&1; do
+until ollama list > /dev/null 2>&1; do
   sleep 1
 done
 
